@@ -7,6 +7,10 @@ import json
 from colorama import init as colorama_init
 from colorama import Fore
 from colorama import Style
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+# Disable SSL warnings
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 colorama_init()
 
@@ -24,30 +28,30 @@ def getFullFilePath(targetPath, filename):
 
 def checkIsGraphQL(url):
     # Try POST first
-    resp = requests.post(url,json=json_universal)
+    resp = requests.post(url,json=json_universal,verify=False)
     if resp.status_code == 200:
         if 'application/json' in resp.headers.get('content-type', ''):
             json = resp.json()
             if json:               
                 if 'data' in json and '__typename' in json['data']:
-                    if json['data']['__typename'] == "Query":            
+                    if "Query" in json['data']['__typename']:         
                         return True
     
     #Otherwise, try a GET
     params = {"query": urlencoded_universal}
-    resp = requests.get(url,params=params)
+    resp = requests.get(url,params=params,verify=False)
     if resp.status_code == 200:
         if 'application/json' in resp.headers.get('content-type', ''):            
             if json:               
                 if 'data' in json and '__typename' in json['data']:
-                    if json['data']['__typename'] == "Query":            
+                    if "Query" in json['data']['__typename']:
                         return True
         
     return False
 
 def performIntrospectionQuery(url):
  # Try POST first
-    resp = requests.post(url,json=json_introspection)
+    resp = requests.post(url,json=json_introspection,verify=False)
     if resp.status_code == 200:
         if 'application/json' in resp.headers.get('content-type', ''):
             json = resp.json()
@@ -57,7 +61,7 @@ def performIntrospectionQuery(url):
     
     #Otherwise, try a GET
     params = {"query": urlencoded_introspection}
-    resp = requests.get(url,params=params)
+    resp = requests.get(url,params=params,verify=False)
     if resp.status_code == 200:
         if 'application/json' in resp.headers.get('content-type', ''):
             json = resp.json()
